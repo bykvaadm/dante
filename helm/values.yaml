@@ -5,11 +5,11 @@
 replicaCount: 1
 
 image:
-  repository: dante
+  repository: bykva/dante
   tag: 1.4.2
   pullPolicy: Always
 
-# imagePullSecrets:
+imagePullSecrets: {}
 
 env:
   USERNAME: telegram
