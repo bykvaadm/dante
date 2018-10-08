@@ -19,7 +19,7 @@ service:
   type: ClusterIP
   externalPort: 1080
   internalPort: 1080
-  # externalIPs: []
+  externalIPs: []
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
