@@ -1,0 +1,60 @@
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: {{ template "dante.fullname" . }}
+  labels:
+    app: {{ template "dante.name" . }}
+    chart: {{ template "dante.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "dante.name" . }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "dante.name" . }}
+        release: {{ .Release.Name }}
+    spec:
+{{ if .Values.imagePullSecrets }}
+      imagePullSecrets:
+      - name: {{ .Values.imagePullSecrets }}
+{{ end }}
+      initContainers:
+        - name: "init"
+          image: "busybox"
+          command: [ "sh", "-c", "cp /etc/danted-ro/danted.conf /etc/danted-rw/danted.conf" ]
+          volumeMounts:
+            - name: danted-config-ro
+              mountPath: /etc/danted-ro
+            - name: danted-config-rw
+              mountPath: /etc/danted-rw
+              readOnly: false
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          env:
+          - name: USERNAME
+            value: {{ .Values.env.USERNAME }}
+          - name: USERPASS
+            value: {{ .Values.env.USERPASS }}
+          volumeMounts:
+            - name: danted-config-ro
+              mountPath: /etc/danted-ro
+            - name: danted-config-rw
+              mountPath: /etc/danted-rw
+              readOnly: false
+      volumes:
+      - name: danted-config-ro
+        configMap:
+          name: {{ template "dante.fullname" . }}
+      - name: danted-config-rw
+        emptyDir: {}

@@ -1,0 +1,112 @@
+apiVersion: v1
+data:
+  danted.conf: "# $Id: sockd.conf,v 1.52.10.2.2.2 2017/01/31 07:16:25 karls Exp $\n#\n#
+    A sample danted.conf\n#\n#\n# The config file is divided into three parts;\n#
+    \   1) server settings\n#    2) rules\n#    3) routes\n#\n# The recommended order
+    is:\n#   Server settings:\n#               logoutput\n#               internal\n#
+    \              external\n#               socksmethod\n#               clientmethod\n#
+    \              users\n#               compatibility\n#               extension\n#
+    \              timeout\n#               srchost\n#\n#  Rules:\n#        client
+    block/pass\n#                from to\n#                libwrap\n#                log\n#\n#
+    \    block/pass\n#                from to\n#                socksmethod\n#                command\n#
+    \               libwrap\n#                log\n#                protocol\n#                proxyprotocol\n#\n#
+    \ Routes:\n\n# the server will log both via syslog, to stdout and to /var/log/sockd.log\nlogoutput:
+    syslog stdout /var/log/sockd.log\n#logoutput: stderr\n\n# The server will bind
+    to the address 10.1.1.1, port 1080 and will only\n# accept connections going to
+    that address.\ninternal: 0.0.0.0 port = 1080\n# Alternatively, the interface name
+    can be used instead of the address.\n#internal: eth0 port = 1080\n\n# all outgoing
+    connections from the server will use the IP address\n# 195.168.1.1\n external:
+    ADDRESS\n\n# list over acceptable authentication methods, order of preference.\n#
+    An authentication method not set here will never be selected.\n#\n# If the socksmethod
+    field is not set in a rule, the global\n# socksmethod is filled in for that rule.\n#\n\n#
+    methods for socks-rules.\nsocksmethod: username \n#none #rfc931\n\n# methods for
+    client-rules.\n#clientmethod: none\n\n#or if you want to allow rfc931 (ident)
+    too\n#socksmethod: username rfc931 none\n\n#or for PAM authentication\n#socksmethod:
+    pam\n\n#\n# User identities, an important section.\n#\n\n# when doing something
+    that can require privilege, it will use the\n# userid:\nuser.privileged: root\n\n#
+    when running as usual, it will use the unprivileged userid of:\nuser.unprivileged:
+    nobody\n\n# If you are not using libwrap, no need for the below line, so leave\n#
+    it commented.\n# If you compiled with libwrap support, what userid should it use\n#
+    when executing your libwrap commands?  \"libwrap\".\n#user.libwrap: libwrap\nuser.libwrap:
+    nobody\n\n\n#\n# Some options to help clients with compatibility:\n#\n\n# when
+    a client connection comes in the socks server will try to use\n# the same port
+    as the client is using, when the socks server\n# goes out on the clients behalf
+    (external: IP address).\n# If this option is set, Dante will try to do it for
+    reserved ports as well.\n# This will usually require user.privileged to be set
+    to \"root\".\n#compatibility: sameport\n\n# If you are using the Inferno Nettverk
+    bind extension and have trouble\n# running servers via the server, you might try
+    setting this.\n#compatibility: reuseaddr\n\n#\n# The Dante server supports some
+    extensions to the socks protocol.\n# These require that the socks client implements
+    the same extension and\n# can be enabled using the \"extension\" keyword.\n#\n#
+    enable the bind extension.\n#extension: bind\n\n\n#\n# Misc options.\n#\n\n# how
+    many seconds can pass from when a client connects till it has\n# sent us its request?
+    \ Adjust according to your network performance\n# and methods supported.\n#timeout.negotiate:
+    30   # on a lan, this should be enough.\n\n# how many seconds can the client and
+    its peer idle without sending\n# any data before we dump it?  Unless you disable
+    tcp keep-alive for\n# some reason, it's probably best to set this to 0, which
+    is\n# \"forever\".\n#timeout.io: 0 # or perhaps 86400, for a day.\n\n# do you
+    want to accept connections from addresses without\n# dns info?  what about addresses
+    having a mismatch in dns info?\n#srchost: nodnsunknown nodnsmismatch\n\n#\n# The
+    actual rules.  There are two kinds and they work at different levels.\n#\n# The
+    rules prefixed with \"client\" are checked first and say who is allowed\n# and
+    who is not allowed to speak/connect to the server.  I.e the\n# ip range containing
+    possibly valid clients.\n# It is especially important that these only use IP addresses,
+    not hostnames,\n# for security reasons.\n#\n# The rules that do not have a \"client\"
+    prefix are checked later, when the\n# client has sent its request and are used
+    to evaluate the actual\n# request.\n#\n# The \"to:\" in the \"client\" context
+    gives the address the connection\n# is accepted on, i.e the address the socks
+    server is listening on, or\n# just \"0.0.0.0/0\" for any address the server is
+    listening on.\n#\n# The \"to:\" in the non-\"client\" context gives the destination
+    of the clients\n# socks request.\n#\n# \"from:\" is the source address in both
+    contexts.\n#\n\n\n#\n# The \"client\" rules.  All our clients come from the net
+    10.0.0.0/8.\n#\n\n# Allow our clients, also provides an example of the port range
+    command.\n#client pass {\n#        from: 10.0.0.0/8 port 1-65535 to: 0.0.0.0/0\n#
+    \       clientmethod: rfc931 # match all idented users that also are in passwordfile\n#}\n\n#
+    This is identical to above, but allows clients without a rfc931 (ident)\n# too.
+    \ In practice this means the socks server will try to get a rfc931\n# reply first
+    (the above rule), if that fails, it tries this rule.\n#client pass {\n#        from:
+    10.0.0.0/8 port 1-65535 to: 0.0.0.0/0\n#}\n\n\n# drop everyone else as soon as
+    we can and log the connect, they are not\n# on our net and have no business connecting
+    to us.  This is the default\n# but if you give the rule yourself, you can specify
+    details.\n#client block {\n#        from: 0.0.0.0/0 to: 0.0.0.0/0\n#        log:
+    connect error\n#}\n\n\n# the rules controlling what clients are allowed what requests\n#\n\n#
+    you probably don't want people connecting to loopback addresses,\n# who knows
+    what could happen then.\n#socks block {\n#        from: 0.0.0.0/0 to: lo0\n#        log:
+    connect error\n#}\n\n# the people at the 172.16.0.0/12 are bad, no one should
+    talk to them.\n# log the connect request and also provide an example on how to\n#
+    interact with libwrap.\n#socks block {\n#        from: 0.0.0.0/0 to: 172.16.0.0/12\n#
+    \       libwrap: spawn finger @%a\n#        log: connect error\n#}\n\n# unless
+    you need it, you could block any bind requests.\n#socks block {\n#        from:
+    0.0.0.0/0 to: 0.0.0.0/0\n#        command: bind\n#        log: connect error\n#}\n\n#
+    or you might want to allow it, for instance \"active\" ftp uses it.\n# Note that
+    a \"bindreply\" command must also be allowed, it\n# should usually by from \"0.0.0.0/0\",
+    i.e if a client of yours\n# has permission to bind, it will also have permission
+    to accept\n# the reply from anywhere.\n#socks pass {\n#        from: 10.0.0.0/8
+    to: 0.0.0.0/0\n#        command: bind\n#        log: connect error\n#}\n\n# some
+    connections expect some sort of \"reply\", this might be\n# the reply to a bind
+    request or it may be the reply to a\n# udppacket, since udp is packet based.\n#
+    Note that nothing is done to verify that it's a \"genuine\" reply,\n# that is
+    in general not possible anyway.  The below will allow\n# all \"replies\" in to
+    your clients at the 10.0.0.0/8 net.\n#socks pass {\n#        from: 0.0.0.0/0 to:
+    10.0.0.0/8\n#        command: bindreply udpreply\n#        log: connect error\n#}\n\n\n#
+    pass any http connects to the example.com domain if they\n# authenticate with
+    username.\n# This matches \"example.com\" itself and everything ending in \".example.com\".\n#socks
+    pass {\n#        from: 10.0.0.0/8 to: .example.com port = http\n#        log:
+    connect error\n#        clientmethod: username\n#}\n\n\n# block any other http
+    connects to the example.com domain.\n#socks block {\n#        from: 0.0.0.0/0
+    to: .example.com port = http\n#        log: connect error\n#}\n\n# everyone from
+    our internal network, 10.0.0.0/8 is allowed to use\n# tcp and udp for everything
+    else.\n#socks pass {\n#        from: 10.0.0.0/8 to: 0.0.0.0/0\n#        protocol:
+    tcp udp\n#}\n\n# last line, block everyone else.  This is the default but if you
+    provide\n# one  yourself you can specify your own logging/actions\n#socks block
+    {\n#        from: 0.0.0.0/0 to: 0.0.0.0/0\n#        log: connect error\n#}\n\n#
+    route all http connects via an upstream socks server, aka \"server-chaining\".\n#route
+    {\n# from: 10.0.0.0/8 to: 0.0.0.0/0 port = http via: socks.example.net port =
+    socks\n#}\n\n\nclient pass\n{\n  from: 0.0.0.0/0 to: 0.0.0.0/0\n  log: error\n}\n\nclient
+    block {\n        from: 0.0.0.0/0 to: 127.0.0.0/8\n        log: connect error\n}\n\nclient
+    block {\n        from: 0.0.0.0/0 to: 172.16.0.0/12\n        log: connect error\n}\n\nsocks
+    pass\n{\n  from: 0.0.0.0/0 to: 0.0.0.0/0\n  command: connect\n  log: error\n  socksmethod:
+    username\n}\n"
+kind: ConfigMap
+metadata:
+  name: {{ template "dante.fullname" . }}

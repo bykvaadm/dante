@@ -1,0 +1,13 @@
+#!/bin/sh
+uid=`sed -n -e "s/[[:space:]]//g" -e "s/#.*//" -e "/^user\\.privileged/{s/[^:]*://p;q;}" /etc/danted.conf`; \
+if [ -n "$uid" ]; then \
+  mkdir -p /run/danted; \
+  touch /run/danted/danted.pid; \
+  chown -R $uid /run/danted; \
+fi
+useradd -s /usr/sbin/nologin ${USERNAME}
+echo "${USERNAME}:${USERPASS}" | chpasswd
+ADDR=$(hostname -I)
+echo "using address: $ADDR"
+sed -i "s/ADDRESS/$ADDR/g" /etc/danted-rw/danted.conf
+/usr/sbin/danted -p /run/danted/danted.pid -f /etc/danted-rw/danted.conf
