@@ -6,7 +6,7 @@ replicaCount: 1
 
 image:
   repository: bykva/dante
-  tag: 1.4.2
+  tag: 1.4.2-bullseye
   pullPolicy: Always
 
 imagePullSecrets: {}
