@@ -1,0 +1,20 @@
+FROM debian:bookworm
+
+RUN apt update && apt -y upgrade && \
+    apt -y install build-essential wget && \
+    cd /usr/src && wget https://www.inet.no/dante/files/dante-1.4.4.tar.gz && \
+    tar zxvf dante-1.4.4.tar.gz && \
+    cd dante-1.4.4 && chmod +x configure && \
+    ./configure --with-sockd-conf=/etc/danted/danted.conf --with-pidfile=/var/run/danted.pid && \
+    make && make install && ln -s /usr/local/sbin/sockd /usr/local/sbin/danted && \
+    apt -y remove build-essential wget --purge && rm -rf /usr/src/dante-* && \
+    apt clean && rm -rf /var/lib/apt/lists/*    && \
+    mkdir /run/danted/
+
+#COPY danted.conf /etc/danted/danted.conf
+COPY init /init
+
+RUN chmod +x /init
+
+EXPOSE 1080
+CMD ["/init"]
