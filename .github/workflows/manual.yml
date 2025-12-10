@@ -48,7 +48,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build and push Docker vanila image
-        id: push
+        id: push_vanila
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -59,7 +59,7 @@ jobs:
           platforms: linux/amd64,linux/arm64,linux/arm/v7
 
       - name: Build and push Docker source image
-        id: push
+        id: push_source
         uses: docker/build-push-action@v6
         with:
           context: .
